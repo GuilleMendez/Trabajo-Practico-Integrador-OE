@@ -17,33 +17,43 @@ lista_usuarios = [
 
 #funciones
 def reparacion():
-    dias_disponibles = []
+    estados = {}
+
+    # Leer archivo
     with open("turnos.csv", encoding="utf-8") as archivo:
         dias = archivo.readline().strip().split(",")
         valores = archivo.readline().strip().split(",")
         for i in range(len(dias)):
             estados[dias[i]] = valores[i]
-    dia = input("Seleccione dia (lunes-martes-miercoles-jueves-viernes-sabado): ").lower()
-    if dia.lower() == "lunes" or dia.lower() == "martes" or dia.lower() == "miercoles" or dia.lower() == "jueves" or dia.lower() == "viernes" or dia.lower() == "sabado":
-        for dia in estados:
-            if estados[dia] == "disponible":
-                estados[dia] = "ultimo_lugar"
-                print(f"Listo, turno registrado para el {dia}")
-                break
-            elif estados[dia] == "ultimo_lugar":
-                estados[dia] = "completo"
-                print(f"Listo, turno registrado para el {dia}")
-                break
-            elif estados[dia] == "completo":
-                for i in estados:
-                    if estados[i] == "disponible":
-                        dias_disponibles.append(i)
-                print(f"Lo sentimos, no tenemos turnos disponibles para esa fecha, pero si tenemos disponible el {dias_disponibles}")
-        with open("turnos.csv", "w", encoding="utf-8") as archivo:
-            archivo.write("lunes,martes,miercoles,jueves,viernes,sabado\n")
-            archivo.write(f"{estados['lunes']},{estados['martes']},{estados['miercoles']},{estados['jueves']},{estados['viernes']},{estados['sabado']}\n")    
-    else:
-        print("Dia invalido, intente nuevamente")
+
+    dia = input("Seleccione día (lunes-martes-miercoles-jueves-viernes-sabado): ").lower()
+
+    if dia not in estados:
+        print("Día inválido, intente nuevamente")
+        return
+
+    # Lógica de reserva SOLO para el día elegido
+    if estados[dia] == "disponible":
+        estados[dia] = "ultimo_lugar"
+        print(f"Listo, turno registrado para el {dia}")
+
+    elif estados[dia] == "ultimo_lugar":
+        estados[dia] = "completo"
+        print(f"Listo, turno registrado para el {dia}")
+
+    elif estados[dia] == "completo":
+        # Buscar otros días disponibles
+        dias_disponibles = [d for d in estados if estados[d] == "disponible"]
+        if dias_disponibles:
+            print(f"No hay turnos para ese día, pero sí para: {dias_disponibles}")
+        else:
+            print("No quedan turnos disponibles en toda la semana")
+
+    # Guardar cambios
+    with open("turnos.csv", "w", encoding="utf-8") as archivo:
+        archivo.write(",".join(estados.keys()) + "\n")
+        archivo.write(",".join(estados[d] for d in estados) + "\n")
+
 
 def consultar_estado():
     opcion = input("Ingrese su patente: ")
@@ -55,7 +65,7 @@ def consultar_estado():
 
 def contacto():
     try:
-        opcion = int(input("Seleccione 1 para tener informacion de donde encontrarnos o presione 2 para conocer nuestros canales de comunicacion alternativos\n"))
+        opcion = int(input("Seleccione 1 para tener informacion de donde encontrarnos o, presione 2 para conocer nuestros canales de comunicacion alternativos o presione 3 para volver al menú\n"))
         if opcion == 1:
             print("Nos encontramos en Pinamar - Buenos Aires, calle Dominguez 8272 de 8:00hs a 23:00hs\n")
         elif opcion == 2:
